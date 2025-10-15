@@ -1,17 +1,18 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Backend pour mon portfolio personnel (Node.js, Express, Prisma)",
+  "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
+    "migrate": "prisma migrate dev",
     "db:push": "prisma db push",
-    "db:seed": "node prisma/seed.js"
+    "db:seed": "node prisma/seed.js",
+    "seed": "node prisma/seed.js"
   },
-  "keywords": [],
-  "author": "",
+  "author": "Kevin Gorizia",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "@prisma/client": "^6.17.1",
     "cors": "^2.8.5",
