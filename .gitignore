@@ -1,0 +1,18 @@
+# Node modules
+node_modules/
+
+# Base de données SQLite
+backend/dev.db
+
+# Logs
+*.log
+
+# Env files
+*.env
+
+# Frontend build / dist
+frontend/dist/
+frontend/build/
+
+# System files
+.DS_Store
