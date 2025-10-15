@@ -9,7 +9,8 @@
     "migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.js",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "type": "module"
   },
   "author": "Kevin Gorizia",
   "license": "ISC",

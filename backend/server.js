@@ -6,13 +6,17 @@ const path = require("path");
 const prisma = new PrismaClient();
 const app = express();
 
-// 🔹 Middleware
-// Autoriser le frontend React (change le port si nécessaire)
-app.use(
-  cors({
-    origin: "http://localhost:5173", // ou "*" pour tout autoriser
-  })
-);
+// Middleware global pour gérer les erreurs
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Une erreur interne est survenue." });
+});
+
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
 app.use(express.json());
 
 // 🔹 Route racine pour test
