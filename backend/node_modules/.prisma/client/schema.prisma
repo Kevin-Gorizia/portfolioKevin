@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = "postgresql://kevindb:ton_mdp@localhost:5433/portfolio?schema=public"
 }
 
 model Project {
@@ -14,7 +14,7 @@ model Project {
   imageUrl     String
   projectUrl   String
   githubUrl    String?
-  technologies String
+  technologies String[]
   featured     Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
