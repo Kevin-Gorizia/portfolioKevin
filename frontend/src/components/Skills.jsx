@@ -1,137 +1,173 @@
-// components/Skills.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import axios from "axios";
+import PropTypes from "prop-types";
+import {
+  FaReact,
+  FaNodeJs,
+  FaPython,
+  FaGitAlt,
+  FaDocker,
+  FaAws,
+  FaCss3Alt,
+  FaJsSquare,
+} from "react-icons/fa";
+import {
+  SiMongodb,
+  SiPostgresql,
+  SiTypescript,
+  SiExpress,
+} from "react-icons/si";
 
 const Skills = () => {
   const [skills, setSkills] = useState([]);
   const [activeCategory, setActiveCategory] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchSkills = async () => {
-      try {
-        const response = await axios.get("http://localhost:5000/api/skills");
-        setSkills(response.data);
-      } catch (error) {
-        console.error("Erreur lors du chargement des compétences:", error);
-        // Données de démo
-        setDemoSkills();
-      }
-    };
-
-    fetchSkills();
-  }, []);
-
-  const setDemoSkills = () => {
-    const demoSkills = [
-      {
-        id: 1,
-        name: "React",
-        level: "90",
-        category: "Frontend",
-        icon: "react",
-      },
+  const demoSkills = useMemo(
+    () => [
+      { id: 1, name: "React", level: 90, category: "Frontend", icon: FaReact },
       {
         id: 2,
         name: "Node.js",
-        level: "85",
+        level: 85,
         category: "Backend",
-        icon: "nodejs",
+        icon: FaNodeJs,
       },
       {
         id: 3,
         name: "TypeScript",
-        level: "80",
+        level: 80,
         category: "Frontend",
-        icon: "typescript",
+        icon: SiTypescript,
       },
       {
         id: 4,
         name: "JavaScript",
-        level: "95",
+        level: 95,
         category: "Frontend",
-        icon: "javascript",
+        icon: FaJsSquare,
       },
       {
         id: 5,
         name: "HTML/CSS",
-        level: "90",
+        level: 90,
         category: "Frontend",
-        icon: "css3",
+        icon: FaCss3Alt,
       },
       {
         id: 6,
         name: "MongoDB",
-        level: "75",
+        level: 75,
         category: "Database",
-        icon: "mongodb",
+        icon: SiMongodb,
       },
       {
         id: 7,
         name: "PostgreSQL",
-        level: "70",
+        level: 70,
         category: "Database",
-        icon: "postgresql",
+        icon: SiPostgresql,
       },
       {
         id: 8,
         name: "Express.js",
-        level: "80",
+        level: 80,
         category: "Backend",
-        icon: "express",
+        icon: SiExpress,
       },
-      { id: 9, name: "Git", level: "85", category: "Tools", icon: "git" },
-      {
-        id: 10,
-        name: "Docker",
-        level: "60",
-        category: "DevOps",
-        icon: "docker",
-      },
-      { id: 11, name: "AWS", level: "65", category: "Cloud", icon: "aws" },
+      { id: 9, name: "Git", level: 85, category: "Tools", icon: FaGitAlt },
+      { id: 10, name: "Docker", level: 60, category: "DevOps", icon: FaDocker },
+      { id: 11, name: "AWS", level: 65, category: "Cloud", icon: FaAws },
       {
         id: 12,
         name: "Python",
-        level: "70",
+        level: 70,
         category: "Backend",
-        icon: "python",
+        icon: FaPython,
       },
-    ];
-    setSkills(demoSkills);
-  };
+    ],
+    []
+  );
 
-  const categories = [
-    { id: "all", name: "Toutes" },
-    { id: "Frontend", name: "Frontend" },
-    { id: "Backend", name: "Backend" },
-    { id: "Database", name: "Bases de données" },
-    { id: "Tools", name: "Outils" },
-    { id: "DevOps", name: "DevOps" },
-    { id: "Cloud", name: "Cloud" },
-  ];
+  const categories = useMemo(
+    () => [
+      { id: "all", name: "Toutes" },
+      { id: "Frontend", name: "Frontend" },
+      { id: "Backend", name: "Backend" },
+      { id: "Database", name: "Bases de données" },
+      { id: "Tools", name: "Outils" },
+      { id: "DevOps", name: "DevOps" },
+      { id: "Cloud", name: "Cloud" },
+    ],
+    []
+  );
 
-  const filteredSkills =
-    activeCategory === "all"
-      ? skills
-      : skills.filter((skill) => skill.category === activeCategory);
-
-  const getSkillIcon = (iconName) => {
-    const iconMap = {
-      react: "fab fa-react",
-      nodejs: "fab fa-node-js",
-      typescript: "fas fa-code",
-      javascript: "fab fa-js-square",
-      css3: "fab fa-css3-alt",
-      mongodb: "fas fa-database",
-      postgresql: "fas fa-database",
-      express: "fas fa-server",
-      git: "fab fa-git-alt",
-      docker: "fab fa-docker",
-      aws: "fab fa-aws",
-      python: "fab fa-python",
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await axios.get("http://localhost:5000/api/skills");
+        setSkills(response.data);
+      } catch (error) {
+        console.error("Erreur lors du chargement des compétences:", error);
+        setError(error.message);
+        setSkills(demoSkills);
+      } finally {
+        setIsLoading(false);
+      }
     };
-    return iconMap[iconName] || "fas fa-code";
-  };
+    fetchSkills();
+  }, [demoSkills]);
+
+  const filteredSkills = useMemo(
+    () =>
+      activeCategory === "all"
+        ? skills.length
+          ? skills
+          : demoSkills
+        : (skills.length ? skills : demoSkills).filter(
+            (skill) => skill.category === activeCategory
+          ),
+    [activeCategory, skills, demoSkills]
+  );
+
+  const SkillsStats = () => (
+    <motion.div
+      className="skills-stats"
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.4 }}
+    >
+      <div className="stat-item">
+        <div className="stat-number">50+</div>
+        <div className="stat-label">Projets réalisés</div>
+      </div>
+      <div className="stat-item">
+        <div className="stat-number">3+</div>
+        <div className="stat-label">Années d'expérience</div>
+      </div>
+      <div className="stat-item">
+        <div className="stat-number">100%</div>
+        <div className="stat-label">Satisfaction client</div>
+      </div>
+      <div className="stat-item">
+        <div className="stat-number">24/7</div>
+        <div className="stat-label">Support disponible</div>
+      </div>
+    </motion.div>
+  );
+
+  if (isLoading) {
+    return <div className="loading">Chargement des compétences...</div>;
+  }
+
+  if (error) {
+    return <div className="error">Erreur: {error}</div>;
+  }
 
   return (
     <section id="skills" className="section">
@@ -155,7 +191,6 @@ const Skills = () => {
           modernes
         </motion.p>
 
-        {/* Filtres par catégorie */}
         <motion.div
           className="skills-filters"
           initial={{ opacity: 0, y: 30 }}
@@ -175,74 +210,62 @@ const Skills = () => {
           ))}
         </motion.div>
 
-        {/* Grille des compétences */}
         <motion.div
           className="skills-grid"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          {filteredSkills.map((skill, index) => (
-            <motion.div
-              key={skill.id}
-              className="skill-card"
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{
-                scale: 1.05,
-                transition: { duration: 0.2 },
-              }}
-            >
-              <div className="skill-header">
-                <div className="skill-icon">
-                  <i className={getSkillIcon(skill.icon)}></i>
+          {filteredSkills.map((skill, index) => {
+            const Icon = skill.icon;
+            return (
+              <motion.div
+                key={skill.id}
+                className="skill-card"
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+              >
+                <div className="skill-header">
+                  <Suspense fallback={<div>Chargement...</div>}>
+                    <Icon className="skill-icon" />
+                  </Suspense>
+                  <h3 className="skill-name">{skill.name}</h3>
                 </div>
-                <h3 className="skill-name">{skill.name}</h3>
-              </div>
 
-              <div className="skill-level">
-                <div className="skill-level-bar">
-                  <motion.div
-                    className="skill-level-progress"
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${skill.level}%` }}
-                    transition={{ duration: 1, delay: 0.5 + index * 0.1 }}
-                  ></motion.div>
+                <div className="skill-level">
+                  <div className="skill-level-bar">
+                    <motion.div
+                      className="skill-level-progress"
+                      initial={{ width: 0 }}
+                      whileInView={{ width: `${skill.level}%` }}
+                      transition={{ duration: 1, delay: 0.5 + index * 0.1 }}
+                    />
+                  </div>
+                  <span className="skill-percentage">{skill.level}%</span>
                 </div>
-                <span className="skill-percentage">{skill.level}%</span>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </motion.div>
 
-        {/* Statistiques */}
-        <motion.div
-          className="skills-stats"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <div className="stat-item">
-            <div className="stat-number">50+</div>
-            <div className="stat-label">Projets réalisés</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-number">3+</div>
-            <div className="stat-label">Années d'expérience</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-number">100%</div>
-            <div className="stat-label">Satisfaction client</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-number">24/7</div>
-            <div className="stat-label">Support disponible</div>
-          </div>
-        </motion.div>
+        <SkillsStats />
       </div>
     </section>
   );
+};
+
+Skills.propTypes = {
+  skills: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+      level: PropTypes.number.isRequired,
+      category: PropTypes.string.isRequired,
+      icon: PropTypes.elementType.isRequired,
+    })
+  ),
 };
 
 export default Skills;

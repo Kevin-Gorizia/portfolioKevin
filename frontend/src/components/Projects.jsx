@@ -1,33 +1,84 @@
-// components/Projects.jsx (version améliorée)
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
+import PropTypes from "prop-types";
 import axios from "axios";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
+import { FaExternalLinkAlt, FaGithub } from "react-icons/fa";
+
+const ProjectCard = ({ project, index }) => (
+  <motion.div
+    key={project.id}
+    className="project-card"
+    initial={{ opacity: 0, y: 50 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay: index * 0.1 }}
+    whileHover={{ y: -10 }}
+  >
+    <div className="project-image-container">
+      <img
+        src={project.imageUrl}
+        alt={project.title}
+        className="project-image"
+        loading="lazy"
+      />
+      <div className="project-overlay">
+        <a
+          href={project.projectUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="project-preview-btn"
+        >
+          <FaExternalLinkAlt />
+          Voir le site
+        </a>
+      </div>
+    </div>
+
+    <div className="project-content">
+      <h3 className="project-title">{project.title}</h3>
+      <p className="project-description">{project.description}</p>
+
+      <div className="project-technologies">
+        {project.technologies.map((tech, techIndex) => (
+          <span key={`${project.id}-${techIndex}`} className="tech-tag">
+            {tech}
+          </span>
+        ))}
+      </div>
+
+      <div className="project-links">
+        <a
+          href={project.projectUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="project-link"
+        >
+          <FaExternalLinkAlt />
+          Live Demo
+        </a>
+        {project.githubUrl && (
+          <a
+            href={project.githubUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="project-link"
+          >
+            <FaGithub />
+            Code Source
+          </a>
+        )}
+      </div>
+    </div>
+  </motion.div>
+);
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
-  const [featuredProjects, setFeaturedProjects] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [projectsRes, featuredRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/projects"),
-          axios.get("http://localhost:5000/api/projects/featured"),
-        ]);
-        setProjects(projectsRes.data);
-        setFeaturedProjects(featuredRes.data);
-      } catch (error) {
-        console.error("Erreur:", error);
-        // Données de démo si le backend n'est pas disponible
-        setDemoData();
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const setDemoData = () => {
-    const demoProjects = [
+  const demoProjects = useMemo(
+    () => [
       {
         id: 1,
         title: "Application E-commerce",
@@ -40,34 +91,37 @@ const Projects = () => {
         technologies: ["React", "Node.js", "MongoDB", "Stripe"],
         featured: true,
       },
-      {
-        id: 2,
-        title: "Réseau Social",
-        description:
-          "Application sociale avec messagerie en temps réel et partage de contenu.",
-        imageUrl:
-          "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=500&auto=format&fit=crop&q=60",
-        projectUrl: "#",
-        githubUrl: "#",
-        technologies: ["React", "Socket.io", "Express", "PostgreSQL"],
-        featured: true,
-      },
-      {
-        id: 3,
-        title: "Application de Gestion",
-        description:
-          "Outil de gestion de projet avec tableau Kanban et analytics.",
-        imageUrl:
-          "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=500&auto=format&fit=crop&q=60",
-        projectUrl: "#",
-        githubUrl: "#",
-        technologies: ["Vue.js", "Laravel", "MySQL", "Chart.js"],
-        featured: false,
-      },
-    ];
-    setProjects(demoProjects);
-    setFeaturedProjects(demoProjects.filter((p) => p.featured));
-  };
+      // ...autres projets demo
+    ],
+    []
+  );
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await axios.get("http://localhost:5000/api/projects");
+        setProjects(response.data);
+      } catch (error) {
+        console.error("Erreur:", error);
+        setError(error.message);
+        setProjects(demoProjects);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [demoProjects]);
+
+  if (isLoading) {
+    return <div className="loading">Chargement des projets...</div>;
+  }
+
+  if (error) {
+    return <div className="error">Erreur: {error}</div>;
+  }
 
   return (
     <section id="projects" className="section">
@@ -81,76 +135,30 @@ const Projects = () => {
           Mes Projets Récents
         </motion.h2>
 
-        <div className="projects-grid">
-          {projects.map((project, index) => (
-            <motion.div
-              key={project.id}
-              className="project-card"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ y: -10 }}
-            >
-              <div className="project-image-container">
-                <img
-                  src={project.imageUrl}
-                  alt={project.title}
-                  className="project-image"
-                />
-                <div className="project-overlay">
-                  <a
-                    href={project.projectUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="project-preview-btn"
-                  >
-                    <i className="fas fa-external-link-alt"></i>
-                    Voir le site
-                  </a>
-                </div>
-              </div>
-
-              <div className="project-content">
-                <h3 className="project-title">{project.title}</h3>
-                <p className="project-description">{project.description}</p>
-
-                <div className="project-technologies">
-                  {project.technologies.map((tech, techIndex) => (
-                    <span key={techIndex} className="tech-tag">
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="project-links">
-                  <a
-                    href={project.projectUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="project-link"
-                  >
-                    <i className="fas fa-external-link-alt"></i>
-                    Live Demo
-                  </a>
-                  {project.githubUrl && (
-                    <a
-                      href={project.githubUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="project-link"
-                    >
-                      <i className="fab fa-github"></i>
-                      Code Source
-                    </a>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        <Suspense fallback={<div>Chargement...</div>}>
+          <div className="projects-grid">
+            {projects.map((project, index) => (
+              <ProjectCard key={project.id} project={project} index={index} />
+            ))}
+          </div>
+        </Suspense>
       </div>
     </section>
   );
+};
+
+ProjectCard.propTypes = {
+  project: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    title: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
+    imageUrl: PropTypes.string.isRequired,
+    projectUrl: PropTypes.string.isRequired,
+    githubUrl: PropTypes.string,
+    technologies: PropTypes.arrayOf(PropTypes.string).isRequired,
+    featured: PropTypes.bool,
+  }).isRequired,
+  index: PropTypes.number.isRequired,
 };
 
 export default Projects;
