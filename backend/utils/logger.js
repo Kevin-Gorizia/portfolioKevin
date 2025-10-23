@@ -1,35 +1,27 @@
-import { createLogger, format, transports } from "winston";
 import path from "path";
-import fs from "fs";
+import { fileURLToPath } from "url";
+import { createLogger, format, transports } from "winston";
 
-const __dirname = path.resolve();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const logDir = path.join(__dirname, "..", "logs");
 
-// 🔹 Crée le dossier logs s’il n’existe pas
-const logDir = path.join(__dirname, "logs");
-if (!fs.existsSync(logDir)) {
-  fs.mkdirSync(logDir);
-}
+const { combine, timestamp, printf } = format;
+const logFormat = printf(({ level, message, timestamp, ...meta }) => {
+  const metaStr = Object.keys(meta).length ? JSON.stringify(meta) : "";
+  return `${timestamp} [${level}] ${message} ${metaStr}`;
+});
 
-// 🔹 Définition du format de log
-const logFormat = format.combine(
-  format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-  format.printf(
-    (info) => `${info.timestamp} [${info.level.toUpperCase()}]: ${info.message}`
-  )
-);
+const level = process.env.NODE_ENV === "production" ? "warn" : "info";
 
-// 🔹 Création du logger principal
 const logger = createLogger({
-  level: "info",
-  format: logFormat,
+  level,
+  format: combine(timestamp(), logFormat),
   transports: [
-    // 🗂️ Fichier pour tous les logs
     new transports.File({
       filename: path.join(logDir, "combined.log"),
       level: "info",
     }),
-
-    // 🟥 Fichier séparé pour les erreurs
     new transports.File({
       filename: path.join(logDir, "error.log"),
       level: "error",
@@ -37,7 +29,6 @@ const logger = createLogger({
   ],
 });
 
-// 🔹 En mode dev → affiche aussi dans la console avec couleur
 if (process.env.NODE_ENV !== "production") {
   logger.add(
     new transports.Console({

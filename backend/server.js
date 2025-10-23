@@ -1,23 +1,41 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import helmet from "helmet";
+import compression from "compression";
 import logger from "./utils/logger.js";
 import { requestLogger, limiter, errorHandler } from "./middlewares/index.js";
 
 // Controllers
 import {
-  getAllProjects,
+  getProjects,
   getFeaturedProjects,
   createProject,
 } from "./controllers/projectController.js";
-import { getAllSkills } from "./controllers/skillController.js";
+import { getSkills } from "./controllers/skillController.js";
+import { sendContactMessage } from "./controllers/contactController.js";
 
 dotenv.config();
 
 const app = express();
 
 // ===== MIDDLEWARES =====
-app.use(cors());
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173")
+  .split(",")
+  .map((s) => s.trim());
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin))
+        return callback(null, true);
+      callback(new Error("Origin non autorisée"));
+    },
+    optionsSuccessStatus: 200,
+  })
+);
+app.use(helmet());
+app.use(compression());
 app.use(express.json());
 app.use(requestLogger);
 
@@ -31,24 +49,15 @@ app.get("/", (req, res) => {
 });
 
 // ===== PROJECT ROUTES =====
-app.get("/api/projects", getAllProjects);
+app.get("/api/projects", getProjects);
 app.get("/api/projects/featured", getFeaturedProjects);
 app.post("/api/projects", createProject);
 
 // ===== SKILL ROUTES =====
-app.get("/api/skills", getAllSkills);
+app.get("/api/skills", getSkills);
 
-// ===== CONTACT ROUTE (exemple avec rate limiter) =====
-import rateLimit from "express-rate-limit";
-import { sendContactMessage } from "./controllers/contactController.js";
-
-const contactLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 5, // max 5 requêtes par IP
-  message: "Trop de requêtes depuis cette IP, réessayez plus tard.",
-});
-
-app.post("/api/contact", contactLimiter, sendContactMessage);
+// ===== CONTACT ROUTE =====
+app.post("/api/contact", limiter, sendContactMessage);
 
 // ===== ERROR HANDLER =====
 app.use(errorHandler);
