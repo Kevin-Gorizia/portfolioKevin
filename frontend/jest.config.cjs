@@ -1,13 +1,15 @@
-/* eslint-env node */
-// jest.config.cjs
 module.exports = {
   testEnvironment: "jsdom",
-  transform: {
-    "^.+\\.[tj]sx?$": "babel-jest",
-  },
-  moduleNameMapper: {
+  setupFilesAfterEnv: ["<rootDir>/src/setupTests.js"],
+  moduleNameMapping: {
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
-    "^next/image$": "<rootDir>/src/__mocks__/nextImageMock.js",
+    "\\.(jpg|jpeg|png|gif|svg)$": "<rootDir>/src/__mocks__/fileMock.js",
   },
-  setupFiles: ["<rootDir>/jest.setup.js"],
+  transformIgnorePatterns: ["node_modules/(?!(axios)/)"],
+  testEnvironmentOptions: {
+    customExportConditions: [""],
+  },
+  transform: {
+    "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
+  },
 };

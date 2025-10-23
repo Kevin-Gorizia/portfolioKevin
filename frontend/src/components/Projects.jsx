@@ -1,76 +1,8 @@
 import React, { useState, useEffect, useMemo, Suspense } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
-// eslint-disable-next-line no-unused-vars
+import ProjectCard from "./ProjectCard";
 import { motion } from "framer-motion";
-import { FaExternalLinkAlt, FaGithub } from "react-icons/fa";
-
-const ProjectCard = ({ project, index }) => (
-  <motion.div
-    key={project.id}
-    className="project-card"
-    initial={{ opacity: 0, y: 50 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay: index * 0.1 }}
-    whileHover={{ y: -10 }}
-  >
-    <div className="project-image-container">
-      <img
-        src={project.imageUrl}
-        alt={project.title}
-        className="project-image"
-        loading="lazy"
-      />
-      <div className="project-overlay">
-        <a
-          href={project.projectUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="project-preview-btn"
-        >
-          <FaExternalLinkAlt />
-          Voir le site
-        </a>
-      </div>
-    </div>
-
-    <div className="project-content">
-      <h3 className="project-title">{project.title}</h3>
-      <p className="project-description">{project.description}</p>
-
-      <div className="project-technologies">
-        {project.technologies.map((tech, techIndex) => (
-          <span key={`${project.id}-${techIndex}`} className="tech-tag">
-            {tech}
-          </span>
-        ))}
-      </div>
-
-      <div className="project-links">
-        <a
-          href={project.projectUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="project-link"
-        >
-          <FaExternalLinkAlt />
-          Live Demo
-        </a>
-        {project.githubUrl && (
-          <a
-            href={project.githubUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="project-link"
-          >
-            <FaGithub />
-            Code Source
-          </a>
-        )}
-      </div>
-    </div>
-  </motion.div>
-);
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
@@ -81,17 +13,37 @@ const Projects = () => {
     () => [
       {
         id: 1,
+        title: "Portfolio Kevin",
+        description:
+          "Un site moderne pour présenter mes projets et compétences avec un design élégant et responsive.",
+        imageUrl: "/images/portfolio.jpg",
+        projectUrl: "https://kevin-gorizia.com",
+        githubUrl: "https://github.com/Kevin-Gorizia/portfolioKevin",
+        technologies: ["React", "Vite", "CSS3", "JavaScript"],
+        featured: true,
+      },
+      {
+        id: 2,
         title: "Application E-commerce",
         description:
           "Plateforme de vente en ligne complète avec panier, paiement et administration.",
-        imageUrl:
-          "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=500&auto=format&fit=crop&q=60",
+        imageUrl: "/images/ecommerce.jpg",
         projectUrl: "#",
         githubUrl: "#",
         technologies: ["React", "Node.js", "MongoDB", "Stripe"],
         featured: true,
       },
-      // ...autres projets demo
+      {
+        id: 3,
+        title: "Application de Gestion",
+        description:
+          "Outil de gestion pour entreprises avec tableau de bord et rapports avancés.",
+        imageUrl: "/images/dashboard.jpg",
+        projectUrl: "#",
+        githubUrl: "#",
+        technologies: ["Vue.js", "Express", "PostgreSQL", "Chart.js"],
+        featured: false,
+      },
     ],
     []
   );
@@ -102,10 +54,18 @@ const Projects = () => {
         setIsLoading(true);
         setError(null);
         const response = await axios.get("http://localhost:5000/api/projects");
-        setProjects(response.data);
+
+        // Si l'API retourne des données, on les utilise
+        if (response.data && response.data.length > 0) {
+          setProjects(response.data);
+        } else {
+          // Sinon, on utilise les projets de démo
+          setProjects(demoProjects);
+        }
       } catch (error) {
-        console.error("Erreur:", error);
-        setError(error.message);
+        console.error("Erreur lors du chargement des projets:", error);
+        setError("Impossible de charger les projets depuis le serveur");
+        // En cas d'erreur, on utilise les projets de démo
         setProjects(demoProjects);
       } finally {
         setIsLoading(false);
@@ -115,50 +75,110 @@ const Projects = () => {
     fetchData();
   }, [demoProjects]);
 
-  if (isLoading) {
-    return <div className="loading">Chargement des projets...</div>;
-  }
+  // Animation variants pour framer-motion
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
 
-  if (error) {
-    return <div className="error">Erreur: {error}</div>;
+  const itemVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  if (isLoading) {
+    return (
+      <section id="projects" className="section projects-section">
+        <div className="container">
+          <div className="loading">Chargement des projets...</div>
+        </div>
+      </section>
+    );
   }
 
   return (
-    <section id="projects" className="section">
+    <section id="projects" className="section projects-section">
       <div className="container">
-        <motion.h2
-          className="section-title"
-          initial={{ opacity: 0, y: 50 }}
+        <motion.div
+          className="section-header"
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
         >
-          Mes Projets Récents
-        </motion.h2>
+          <h2 className="section-title">Mes Projets Récents</h2>
+          <p className="section-subtitle">
+            Découvrez une sélection de mes réalisations les plus significatives
+          </p>
+        </motion.div>
 
-        <Suspense fallback={<div>Chargement...</div>}>
-          <div className="projects-grid">
+        {error && (
+          <motion.div
+            className="error-message"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <p>{error}</p>
+            <p className="demo-notice">
+              Affichage des projets de démonstration
+            </p>
+          </motion.div>
+        )}
+
+        <Suspense
+          fallback={<div className="loading">Chargement des projets...</div>}
+        >
+          <motion.div
+            className="projects-grid"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             {projects.map((project, index) => (
-              <ProjectCard key={project.id} project={project} index={index} />
+              <motion.div
+                key={project.id || project._id}
+                variants={itemVariants}
+                whileHover={{
+                  y: -8,
+                  transition: { duration: 0.3 },
+                }}
+              >
+                <ProjectCard project={project} index={index} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </Suspense>
+
+        {projects.length === 0 && !isLoading && (
+          <motion.div
+            className="no-projects"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <p>Aucun projet à afficher pour le moment.</p>
+          </motion.div>
+        )}
       </div>
     </section>
   );
 };
 
-ProjectCard.propTypes = {
-  project: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    title: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
-    imageUrl: PropTypes.string.isRequired,
-    projectUrl: PropTypes.string.isRequired,
-    githubUrl: PropTypes.string,
-    technologies: PropTypes.arrayOf(PropTypes.string).isRequired,
-    featured: PropTypes.bool,
-  }).isRequired,
-  index: PropTypes.number.isRequired,
+// PropTypes pour le composant Projects
+Projects.propTypes = {
+  // Vous pouvez ajouter des props si nécessaire
 };
 
 export default Projects;

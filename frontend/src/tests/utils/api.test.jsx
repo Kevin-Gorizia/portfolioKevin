@@ -1,10 +1,15 @@
+// src/tests/utils/api.test.jsx
 import { skillsService } from "../../services/api.js";
-import { test, expect } from "@jest/globals";
+import axios from "axios";
+
+jest.mock("axios");
 
 test("fetches projects data from the API", async () => {
-  const response = await skillsService.getProjects();
-  const data = response.data;
+  // arrange : mock axios.get pour retourner une response similaire à axios
+  const fakeData = [{ id: 1 }, { id: 2 }, { id: 3 }];
+  axios.get.mockResolvedValue({ data: fakeData });
 
-  expect(data).toBeDefined();
-  expect(data).toHaveLength(3); // Exemple : vérifier qu'il y a 3 projets
+  const response = await skillsService.getProjects();
+  expect(response.data).toBeDefined();
+  expect(response.data).toHaveLength(3);
 });

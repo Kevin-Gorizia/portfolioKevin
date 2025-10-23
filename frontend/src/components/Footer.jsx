@@ -165,11 +165,11 @@ const Footer = () => {
             <div className="contact-info">
               <div className="contact-item">
                 <i className="fas fa-envelope"></i>
-                <span>votre.email@portfolio.com</span>
+                <span>hkevin.gorizia@gmail.com</span>
               </div>
               <div className="contact-item">
                 <i className="fas fa-phone"></i>
-                <span>+33 6 12 34 56 78</span>
+                <span>+33 6 65 14 84 20</span>
               </div>
               <div className="contact-item">
                 <i className="fas fa-map-marker-alt"></i>
